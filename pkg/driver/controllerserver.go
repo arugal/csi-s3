@@ -108,9 +108,9 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 		}
 	}
 
-	if err = client.CreatePrefix(bucketName, path.Join(prefix, defaultFsPath)); err != nil {
-		return nil, fmt.Errorf("failed to create prefix %s: %v", path.Join(prefix, defaultFsPath), err)
-	}
+	//if err = client.CreatePrefix(bucketName, path.Join(prefix, defaultFsPath)); err != nil {
+	//	return nil, fmt.Errorf("failed to create prefix %s: %v", path.Join(prefix, defaultFsPath), err)
+	//}
 
 	if err := client.SetFSMeta(meta); err != nil {
 		return nil, fmt.Errorf("error setting bucket metadata: %w", err)
