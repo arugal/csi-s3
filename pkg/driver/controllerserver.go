@@ -40,7 +40,7 @@ type controllerServer struct {
 }
 
 const (
-	defaultFsPath = "csi-fs"
+	defaultFsPath = ""
 )
 
 func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {

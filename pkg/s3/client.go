@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	metadataName = ".metadata.json"
+	metadataName       = ".metadata.json"
+	metadataBucketName = "csi-s3-metadata"
 )
 
 type s3Client struct {
@@ -83,6 +84,13 @@ func (client *s3Client) BucketExists(bucketName string) (bool, error) {
 
 func (client *s3Client) CreateBucket(bucketName string) error {
 	return client.minio.MakeBucket(client.ctx, bucketName, minio.MakeBucketOptions{Region: client.Config.Region})
+}
+
+func (client *s3Client) CreateBucketIfAbsent(bucketName string) error {
+	if exists, err := client.minio.BucketExists(client.ctx, bucketName); exists || err != nil {
+		return err
+	}
+	return client.CreateBucket(bucketName)
 }
 
 func (client *s3Client) CreatePrefix(bucketName string, prefix string) error {
@@ -224,15 +232,21 @@ func (client *s3Client) SetFSMeta(meta *FSMeta) error {
 	b := new(bytes.Buffer)
 	json.NewEncoder(b).Encode(meta)
 	opts := minio.PutObjectOptions{ContentType: "application/json"}
+	if err := client.CreateBucketIfAbsent(metadataBucketName); err != nil {
+		return err
+	}
 	_, err := client.minio.PutObject(
-		client.ctx, meta.BucketName, path.Join(meta.Prefix, metadataName), b, int64(b.Len()), opts,
+		client.ctx, metadataBucketName, path.Join(meta.BucketName, meta.Prefix, metadataName), b, int64(b.Len()), opts,
 	)
 	return err
 }
 
 func (client *s3Client) GetFSMeta(bucketName, prefix string) (*FSMeta, error) {
+	if err := client.CreateBucketIfAbsent(metadataBucketName); err != nil {
+		return &FSMeta{}, err
+	}
 	opts := minio.GetObjectOptions{}
-	obj, err := client.minio.GetObject(client.ctx, bucketName, path.Join(prefix, metadataName), opts)
+	obj, err := client.minio.GetObject(client.ctx, metadataBucketName, path.Join(bucketName, prefix, metadataName), opts)
 	if err != nil {
 		return &FSMeta{}, err
 	}
