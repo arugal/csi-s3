@@ -50,7 +50,6 @@ func (rclone *rcloneMounter) Mount(source string, target string) error {
 		fmt.Sprintf("--s3-region=%s", rclone.region),
 		fmt.Sprintf("--s3-endpoint=%s", rclone.url),
 		"--allow-other",
-		// TODO: make this configurable
 		"--umask=000",
 		"--file-perms=0777",
 		"--dir-perms=0777",
