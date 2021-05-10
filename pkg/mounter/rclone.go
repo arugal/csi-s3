@@ -55,6 +55,8 @@ func (rclone *rcloneMounter) Mount(source string, target string) error {
 		"--umask=000",
 		"--file-perms=0777",
 		"--dir-perms=0777",
+		"--uid=1001",
+		"--gid=1001",
 	}
 	os.Setenv("AWS_ACCESS_KEY_ID", rclone.accessKeyID)
 	os.Setenv("AWS_SECRET_ACCESS_KEY", rclone.secretAccessKey)
