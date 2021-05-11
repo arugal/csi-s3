@@ -6,18 +6,11 @@ ADD . /build
 RUN go get -d -v ./...
 RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o ./s3driver ./cmd/s3driver
 
-FROM debian:stretch as s3fsbuild
-
-WORKDIR /build
-
-
-
 FROM debian:buster-slim
 LABEL maintainers="Cyrill Troxler <cyrilltroxler@gmail.com>"
 LABEL description="csi-s3 slim image"
 
 COPY --from=gobuild /build/s3driver /s3driver
-COPY --from=s3fsbuild /usr/local/s3fs /usr/local/s3fs
 
 # some other dependencies
 RUN apt-get update && \
