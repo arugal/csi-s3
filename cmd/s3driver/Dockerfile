@@ -6,6 +6,18 @@ ADD . /build
 RUN go get -d -v ./...
 RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o ./s3driver ./cmd/s3driver
 
+FROM debian:stretch as s3fsbuild
+
+WORKDIR /build
+
+RUN git clone -b ignore_change_owner_err https://github.com/arugal/s3fs-fuse.git \
+    && cd s3fs-fuse \
+    && .github/workflows/linux-ci-helper.sh debian:stretch \
+    && ./autogen.sh \
+    && ./configure \
+    && make \
+    && make install
+
 FROM debian:buster-slim
 LABEL maintainers="Cyrill Troxler <cyrilltroxler@gmail.com>"
 LABEL description="csi-s3 slim image"
@@ -25,4 +37,5 @@ RUN cd /tmp \
   && rm -r /tmp/rclone*
 
 COPY --from=gobuild /build/s3driver /s3driver
+COPY --from=s3fsbuild /build/s3fs-fuse/src/s3fs /usr/bin/s3fs
 ENTRYPOINT ["/s3driver"]
