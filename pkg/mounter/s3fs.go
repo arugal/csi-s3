@@ -50,6 +50,7 @@ func (s3fs *s3fsMounter) Mount(source string, target string) error {
 		"-o", "allow_other",
 		"-o", "mp_umask=0000",
 		"-o", "umask=0000",
+		"-o", "use_cache=/tmp",
 	}
 	return fuseMount(target, s3fsCmd, args)
 }
