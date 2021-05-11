@@ -10,14 +10,7 @@ FROM debian:stretch as s3fsbuild
 
 WORKDIR /build
 
-RUN apt-get update && apt-get install -y git make \
-    && git clone -b ignore_change_owner_err https://github.com/arugal/s3fs-fuse.git \
-    && cd s3fs-fuse \
-    && .github/workflows/linux-ci-helper.sh debian:stretch \
-    && ./autogen.sh \
-    && ./configure --prefix=/usr/local/s3fs \
-    && make \
-    && make install
+
 
 FROM debian:buster-slim
 LABEL maintainers="Cyrill Troxler <cyrilltroxler@gmail.com>"
@@ -28,11 +21,17 @@ COPY --from=s3fsbuild /usr/local/s3fs /usr/local/s3fs
 
 # some other dependencies
 RUN apt-get update && \
-  apt-get install -y curl unzip && \
+  apt-get install -y curl unzip git make && \
   rm -rf /var/lib/apt/lists/*
 
-# s3fs env
-RUN export PATH=$PATH:/usr/local/s3fs/bin
+# install s3fs
+RUN cd /tmp \
+    && git clone -b ignore_change_owner_err https://github.com/arugal/s3fs-fuse.git \
+    && cd s3fs-fuse \
+    && .github/workflows/linux-ci-helper.sh debian:stretch \
+    && ./autogen.sh && ./configure --prefix=/usr/local/s3fs \
+    && make && make install \
+    && cd /tmp && rm -r /tmp/s3fs-fuse
 
 # install rclone
 ARG RCLONE_VERSION=v1.54.1
@@ -41,5 +40,7 @@ RUN cd /tmp \
   && unzip /tmp/rclone-${RCLONE_VERSION}-linux-amd64.zip \
   && mv /tmp/rclone-*-linux-amd64/rclone /usr/bin \
   && rm -r /tmp/rclone*
+
+ENV PATH=$PATH:/usr/local/s3fs/bin
 
 ENTRYPOINT ["/s3driver"]
