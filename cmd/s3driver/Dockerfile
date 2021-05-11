@@ -10,7 +10,7 @@ FROM debian:stretch as s3fsbuild
 
 WORKDIR /build
 
-RUN apt-get install -y git \
+RUN apt-get update && apt-get install -y git make \
     && git clone -b ignore_change_owner_err https://github.com/arugal/s3fs-fuse.git \
     && cd s3fs-fuse \
     && .github/workflows/linux-ci-helper.sh debian:stretch \
